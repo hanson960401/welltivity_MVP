@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welltivity 3分鐘多巴胺微健康生態系 - 互動 MVP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .phone-mockup {
+            width: 375px;
+            height: 760px;
+            border: 12px solid #0f172a;
+            border-radius: 48px;
+            background: #f8fafc;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 0 2px #334155;
+            display: flex;
+            flex-direction: column;
+        }
+        .phone-notch {
+            width: 130px;
+            height: 24px;
+            background: #0f172a;
+            border-bottom-left-radius: 16px;
+            border-bottom-right-radius: 16px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 30;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes shake {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-8deg) scale(1.08); }
+            75% { transform: rotate(8deg) scale(1.08); }
+        }
+        .animate-box { animation: shake 0.8s infinite ease-in-out; }
+    </style>
+</head>
+<body>
+
+    <!-- 頂部簡報控制列 (方便切換與重置 Demo) -->
+    <div class="mb-4 flex flex-wrap items-center gap-2 bg-slate-800/90 backdrop-blur border border-slate-700 text-white px-4 py-2 rounded-full shadow-lg text-xs">
+        <span class="font-black text-emerald-400 mr-1">🟢 互動式 MVP 原型：</span>
+        <button onclick="switchTab('home')" class="hover:bg-slate-700 px-2.5 py-1 rounded-full transition">① 情境首頁</button>
+        <button onclick="switchTab('player')" class="hover:bg-slate-700 px-2.5 py-1 rounded-full transition">② 3分鐘短影音</button>
+        <button onclick="switchTab('squad')" class="hover:bg-slate-700 px-2.5 py-1 rounded-full transition">③ 連坐與炫耀卡</button>
+        <button onclick="switchTab('mall')" class="hover:bg-slate-700 px-2.5 py-1 rounded-full transition">④ W幣跨界商城</button>
+        <button onclick="resetDemo()" class="bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30 px-2.5 py-1 rounded-full ml-2">🔄 重置狀態</button>
+    </div>
+
+    <!-- ================= 手機外框開始 ================= -->
+    <div class="phone-mockup">
+        <div class="phone-notch"></div>
+
+        <!-- 頂部通知 Toast (浮動提示) -->
+        <div id="toast" class="hidden absolute top-9 left-4 right-4 bg-slate-900/95 text-white text-xs font-bold px-4 py-2.5 rounded-2xl shadow-xl z-50 flex items-center justify-between border border-emerald-500/40 transition-all">
+            <span id="toast-msg">提示訊息</span>
+        </div>
+
+        <!-- 頂部使用者固定狀態列 -->
+        <div class="px-4 pt-2 pb-2 bg-white border-b border-slate-100 flex justify-between items-center z-20">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-base shadow-sm">👧</div>
+                <div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="font-black text-slate-800 text-xs">林姿婷</span>
+                        <span id="user-lv" class="bg-indigo-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded">Lv.5</span>
+                    </div>
+                    <div id="user-title" class="text-[10px] text-slate-500 font-medium">亞健康職場新鮮人</div>
+                </div>
+            </div>
+            <div class="flex items-center gap-1.5">
+                <div class="bg-orange-50 border border-orange-200 text-orange-600 px-2 py-1 rounded-full text-[11px] font-black flex items-center gap-0.5">
+                    🔥 <span id="streak-count">7</span>天
+                </div>
+                <div class="bg-amber-50 border border-amber-200 text-amber-600 px-2.5 py-1 rounded-full text-xs font-black flex items-center gap-1 shadow-sm">
+                    🪙 <span id="w-coins">450</span> W
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= 主內容滾動區 ================= -->
+        <div class="flex-1 overflow-y-auto no-scrollbar relative bg-slate-50">
+
+            <!-- 【Tab 1: 智慧情境首頁】 -->
+            <div id="tab-home" class="p-4 space-y-3.5">
+                <!-- 穿戴裝置情境橫幅 -->
+                <div id="alert-banner" class="bg-rose-50 border border-rose-200 p-2.5 rounded-xl flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="text-lg animate-bounce">⌚</span>
+                        <div>
+                            <div class="text-xs font-black text-rose-700">15:00 辦公室久坐警報！</div>
+                            <div class="text-[10px] text-rose-600">已連續久坐 120 分鐘，隊友正在等你達標！</div>
+                        </div>
+                    </div>
+                    <button onclick="startWorkout()" class="bg-rose-600 text-white text-[10px] font-black px-2.5 py-1.5 rounded-lg shadow">立即解救</button>
+                </div>
+
+                <!-- Avatar 互動養成卡片 -->
+                <div class="bg-gradient-to-b from-indigo-50 via-white to-emerald-50 rounded-2xl p-4 text-center border border-indigo-100 shadow-sm relative">
+                    <div class="flex justify-between items-center mb-1">
+                        <span id="avatar-badge" class="bg-slate-200 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full">狀態：肩頸石化中 🪨</span>
+                        <span class="text-[10px] text-indigo-600 font-bold">點擊角色互動 💬</span>
+                    </div>
+                    <div onclick="pokeAvatar()" class="cursor-pointer py-2 transition transform active:scale-95 select-none">
+                        <div id="avatar-emoji" class="text-6xl filter grayscale-[40%] transition-all duration-500">🧘🏻‍♀️</div>
+                    </div>
+                    <p id="avatar-speech" class="font-black text-slate-800 text-xs mt-1">「肩頸快石化啦！動 3 分鐘幫我解封印～」</p>
+                    
+                    <!-- 活力值進度條 -->
+                    <div class="mt-3 text-left">
+                        <div class="flex justify-between text-[10px] font-bold mb-1">
+                            <span class="text-emerald-700">⚡ 今日多巴胺活力值</span>
+                            <span id="vitality-text" class="text-emerald-600">80% (再1次微任務解鎖盲盒)</span>
+                        </div>
+                        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                            <div id="vitality-bar" class="bg-emerald-500 h-full w-4/5 transition-all duration-500"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 24H 碎片時間微健康任務 -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center px-1">
+                        <span class="font-black text-slate-700 text-xs">⚡ 24H 黃金干預微任務 (免換裝)</span>
+                        <span class="text-[10px] text-slate-400">依時空自動推薦</span>
+                    </div>
+
+                    <!-- 任務 1：早 -->
+                    <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex justify-between items-center opacity-75">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-xl">🚇</span>
+                            <div>
+                                <div class="font-bold text-slate-700 text-xs line-through">08:30 捷運站立核心微收緊</div>
+                                <div class="text-[10px] text-slate-400">通勤中・3 分鐘・已完成</div>
+                            </div>
+                        </div>
+                        <span class="bg-emerald-100 text-emerald-700 font-black px-2 py-1 rounded-lg text-[10px]">✓ +15 W</span>
+                    </div>
+
+                    <!-- 任務 2：午 (主推) -->
+                    <div id="main-task-card" class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-3 rounded-2xl shadow-md flex justify-between items-center transform transition hover:scale-[1.01]">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-2xl">💻</span>
+                            <div>
+                                <div class="flex items-center gap-1">
+                                    <span class="bg-amber-400 text-slate-900 text-[9px] font-black px-1.5 py-0.2 rounded">現在推薦</span>
+                                    <span class="font-black text-xs">15:00 辦公桌肩頸解封印</span>
+                                </div>
+                                <div class="text-[10px] text-emerald-100 mt-0.5">免換裝・坐姿靜音・3 分鐘領驚喜盲盒</div>
+                            </div>
+                        </div>
+                        <button id="main-task-btn" onclick="startWorkout()" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black px-3 py-2 rounded-xl text-xs shadow">
+                            GO ▸
+                        </button>
+                    </div>
+
+                    <!-- 任務 3：晚 -->
+                    <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex justify-between items-center">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-xl">🌙</span>
+                            <div>
+                                <div class="font-bold text-slate-700 text-xs">23:30 5坪套房睡前助眠伸展</div>
+                                <div class="text-[10px] text-slate-500">床上可做・3 分鐘・改善熬夜失眠</div>
+                            </div>
+                        </div>
+                        <button onclick="startWorkout()" class="bg-slate-100 hover:bg-slate-200 text-amber-600 font-black px-2.5 py-1 rounded-lg text-[10px]">+15 W ▸</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 【Tab 2: 3分鐘直式短影音跟練 + 盲盒開箱】 -->
+            <div id="tab-player" class="hidden h-full bg-slate-900 text-white p-4 flex flex-col justify-between relative">
+                <!-- 頂部計時與 AI 狀態 -->
+                <div class="flex justify-between items-center z-10">
+                    <div class="bg-emerald-500 text-slate-950 font-black px-3 py-1 rounded-full text-xs flex items-center gap-1 shadow">
+                        ⏱️ 倒數 <span id="timer-display">00:15</span> / 03:00
+                    </div>
+                    <div class="bg-sky-500/20 text-sky-300 border border-sky-400/40 px-2.5 py-1 rounded-full text-[11px] font-bold">
+                        🤖 AI 骨架偵測：<span class="text-emerald-300 font-black">Perfect!</span>
+                    </div>
+                </div>
+
+                <!-- 模擬直式短影音畫面 -->
+                <div class="my-3 flex-1 bg-gradient-to-b from-slate-800 to-slate-950 rounded-2xl border border-slate-700 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+                    <div class="absolute top-3 left-3 bg-white/10 px-2.5 py-1 rounded-full text-[10px] text-slate-300">
+                        🏷️ #辦公桌免換裝 #肩頸解封印
+                    </div>
+                    <div class="text-7xl my-4 animate-bounce">🙆🏻‍♀️✨</div>
+                    <div class="bg-black/50 backdrop-blur px-4 py-2.5 rounded-xl border border-white/10 text-center">
+                        <p id="coach-tip" class="text-sm font-black text-emerald-300">「雙手後扣，肩胛骨向後夾緊停留 5 秒」</p>
+                        <p class="text-[11px] text-slate-300 mt-1">深呼吸，感受長期打字的斜方肌正在放鬆～</p>
+                    </div>
+                    <div class="absolute bottom-3 right-3 text-[11px] text-amber-300 font-bold bg-black/40 px-2.5 py-1 rounded-full">
+                        👥 目前有 128 位 Z 世代正在同步伸展
+                    </div>
+                </div>
+
+                <!-- 底部控制按鈕 (含 Demo 快速通關) -->
+                <div class="space-y-2 z-10">
+                    <button onclick="finishWorkoutInstantly()" class="w-full bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-300 text-slate-950 font-black py-3 rounded-xl text-xs shadow-lg">
+                        ⚡ [簡報 Demo 專用] 快轉完成 3 分鐘並解鎖盲盒！
+                    </button>
+                    <button onclick="switchTab('home')" class="w-full bg-slate-800 text-slate-400 py-2 rounded-xl text-xs font-bold">
+                        暫停並返回首頁
+                    </button>
+                </div>
+
+                <!-- 🎁 完課多巴胺結算與盲盒彈窗 (Modal) -->
+                <div id="reward-modal" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-sm z-30 p-5 flex flex-col items-center justify-center">
+                    <div class="bg-white text-slate-800 w-full rounded-3xl p-5 shadow-2xl border-4 border-amber-400 text-center space-y-3">
+                        <span class="bg-amber-100 text-amber-800 text-xs font-black px-3 py-1 rounded-full">🎉 3分鐘微任務達標！</span>
+                        <h3 class="font-black text-base text-slate-900">多巴胺驚喜盲盒已掉落</h3>
+
+                        <!-- 尚未開箱狀態 -->
+                        <div id="box-unopened" onclick="openBlindBox()" class="cursor-pointer bg-amber-50 border-2 border-dashed border-amber-300 rounded-2xl p-5 my-2 hover:bg-amber-100 transition">
+                            <div class="text-6xl animate-box">🎁</div>
+                            <p class="text-xs font-black text-amber-700 mt-2">👆 點擊寶箱立即開獎！</p>
+                        </div>
+
+                        <!-- 開箱後獎勵內容 -->
+                        <div id="box-opened" class="hidden bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-3.5 text-left space-y-1.5">
+                            <div class="flex items-center justify-between">
+                                <span class="font-black text-amber-600 text-sm">🪙 獲得 +30 W幣</span>
+                                <span class="bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">連勝7天 x1.5加成!</span>
+                            </div>
+                            <div class="text-xs font-bold text-indigo-700">👑 稀有稱號：【辦公室生存大師】</div>
+                            <div class="text-xs text-slate-700 font-medium">🎧 解鎖配件：Avatar 潮流耳機</div>
+                            <div class="text-[11px] text-emerald-700 font-bold pt-1 border-t border-amber-200/60">
+                                ✓ 已同步推進「行銷部摸魚防衛隊」連坐進度！
+                            </div>
+                        </div>
+
+                        <!-- 彈窗底部 CTA -->
+                        <div class="space-y-2 pt-1">
+                            <button onclick="goToShareCard()" class="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-black py-2.5 rounded-xl text-xs shadow-md">
+                                📸 一鍵生成 IG / Threads 炫耀卡 (+5 W幣)
+                            </button>
+                            <button onclick="switchTab('squad')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 rounded-xl text-xs">
+                                查看小隊連坐進度 ▸
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 【Tab 3: 揪團連坐與社交炫耀卡】 -->
+            <div id="tab-squad" class="hidden p-4 space-y-3.5">
+                <!-- 連坐小隊卡片 -->
+                <div class="bg-white p-3.5 rounded-2xl shadow-sm border-2 border-rose-200">
+                    <div class="flex justify-between items-center">
+                        <span class="font-black text-slate-800 text-xs">🔥 行銷部摸魚防衛隊 (<span id="squad-progress">3/4</span>)</span>
+                        <span id="squad-status-badge" class="bg-rose-100 text-rose-600 text-[10px] font-black px-2 py-0.5 rounded-full">連坐危機 ⏳剩3小時</span>
+                    </div>
+                    <p id="squad-desc" class="text-[11px] text-slate-500 mt-1">⚠️ 只要 1 人未達標，全隊今日 <b class="text-rose-600">+200 W幣大禮包</b> 將全數歸零！</p>
+
+                    <!-- 4位隊友狀態格 -->
+                    <div class="grid grid-cols-4 gap-2 my-3 text-center text-xs">
+                        <div class="bg-emerald-50 p-2 rounded-xl border border-emerald-200">
+                            <div class="text-xl">👧</div>
+                            <div class="font-black text-emerald-700 text-[11px] mt-1">姿婷 ✓</div>
+                        </div>
+                        <div class="bg-emerald-50 p-2 rounded-xl border border-emerald-200">
+                            <div class="text-xl">👦</div>
+                            <div class="font-black text-emerald-700 text-[11px] mt-1">阿凱 ✓</div>
+                        </div>
+                        <div class="bg-emerald-50 p-2 rounded-xl border border-emerald-200">
+                            <div class="text-xl">👩</div>
+                            <div class="font-black text-emerald-700 text-[11px] mt-1">小芸 ✓</div>
+                        </div>
+                        <div id="teammate-box" class="bg-rose-50 p-2 rounded-xl border-2 border-rose-300 animate-pulse">
+                            <div id="teammate-emoji" class="text-xl">😪</div>
+                            <div id="teammate-name" class="font-black text-rose-600 text-[11px] mt-1">宇軒 ✗</div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-1.5">
+                        <button id="nudge-btn" onclick="nudgeTeammate()" class="flex-1 bg-rose-500 hover:bg-rose-600 text-white font-black py-2 rounded-xl text-xs shadow transition active:scale-95">
+                            💥 一鍵傳送「迷因警報」轟炸宇軒！
+                        </button>
+                        <button onclick="simulateTeammateDone()" title="Demo模擬隊友完課" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold px-2.5 py-2 rounded-xl text-[10px]">
+                            ⚡模擬宇軒完課
+                        </button>
+                    </div>
+                </div>
+
+                <!-- IG / Threads 炫耀卡預覽器 -->
+                <div class="bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 text-white p-4 rounded-2xl shadow-lg space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] bg-white/20 px-2.5 py-0.5 rounded-full font-bold">✨ IG / Threads 專屬炫耀卡</span>
+                        <span class="text-[10px] text-amber-300 font-bold">#Welltivity3分鐘救星</span>
+                    </div>
+
+                    <div class="flex items-center gap-3 bg-white/10 p-3 rounded-xl border border-white/15">
+                        <div class="text-4xl">🧘🏻‍♀️🎧</div>
+                        <div>
+                            <div class="text-[10px] text-purple-200">今日解鎖稀有稱號</div>
+                            <div class="font-black text-sm text-amber-300">【辦公室生存大師 Lv.5】</div>
+                            <div class="text-[10px] text-emerald-300 mt-0.5">✓ 擊退 15:00 肩頸石化｜連勝 7 天 🔥</div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center bg-black/30 px-3 py-2 rounded-xl text-xs">
+                        <span class="text-[11px] text-slate-200">📲 朋友掃碼入隊領 50 W幣</span>
+                        <button onclick="shareToSocial()" class="bg-gradient-to-r from-amber-400 to-pink-500 text-slate-950 font-black px-3 py-1 rounded-lg text-[11px] shadow">
+                            分享至限動 (+5 W) ▸
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 【Tab 4: AI 拍美食算熱量 (喬山既有亮點整合)】 -->
+            <div id="tab-ai" class="hidden p-4 space-y-3.5">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm text-center space-y-3">
+                    <span class="bg-amber-100 text-amber-800 text-[10px] font-black px-2.5 py-1 rounded-full">📸 Welltivity AI 視覺辨識引擎</span>
+                    <h3 class="font-black text-slate-800 text-sm">拍下你的手搖飲或外食，AI 秒算熱量</h3>
+                    
+                    <div class="h-40 bg-slate-100 rounded-2xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center relative overflow-hidden">
+                        <div class="text-5xl mb-2">🧋</div>
+                        <div class="text-xs font-bold text-slate-600">已對焦：大杯半糖珍珠奶茶</div>
+                        <div class="text-[10px] text-emerald-600 font-bold mt-1">🤖 AI 辨識信心度 98.5%</div>
+                    </div>
+
+                    <button onclick="analyzeFood()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-2.5 rounded-xl text-xs shadow">
+                        🔍 立即進行 AI 卡路里分析與抵銷建議
+                    </button>
+
+                    <div id="food-result" class="hidden bg-emerald-50 border border-emerald-200 p-3 rounded-xl text-left space-y-1.5">
+                        <div class="flex justify-between items-center">
+                            <span class="font-black text-slate-800 text-xs">🔥 預估熱量：550 kcal</span>
+                            <span class="text-[10px] bg-rose-100 text-rose-600 font-bold px-2 py-0.5 rounded">精緻糖分偏高</span>
+                        </div>
+                        <p class="text-[11px] text-slate-600">💡 <b>AI 微健康處方：</b>餐後執行 2 組「3分鐘站立核心微運動」即可加速血糖代謝，還能領 +20 W幣折抵下一杯無糖純茶！</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 【Tab 5: W幣跨界生態系商城】 -->
+            <div id="tab-mall" class="hidden p-4 space-y-3.5">
+                <!-- 南山人壽外溢保單連動 -->
+                <div class="bg-gradient-to-r from-teal-700 to-emerald-600 text-white p-3.5 rounded-2xl shadow-md">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="font-black">🛡️ 南山人壽外溢保單連動</span>
+                        <span id="insurance-badge" class="bg-amber-300 text-slate-900 font-black px-2 py-0.5 rounded-full text-[10px]">已達標 85%</span>
+                    </div>
+                    <p class="text-[11px] text-teal-100 mt-1">本月再完成 2 次微運動，即享次年保費 <b>5% 自動折抵</b>！</p>
+                    <div class="w-full bg-teal-950/40 h-2 rounded-full mt-2 overflow-hidden">
+                        <div id="insurance-bar" class="bg-amber-300 h-full w-[85%] transition-all duration-500"></div>
+                    </div>
+                </div>
+
+                <!-- 兌換商品列表 -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center px-1">
+                        <span class="font-black text-slate-700 text-xs">🧋 汗水換手搖・喬山生態系專區</span>
+                        <span class="text-[10px] text-slate-400">點擊立即核銷</span>
+                    </div>
+
+                    <!-- 商品 1 -->
+                    <div class="bg-white p-3 rounded-xl border-2 border-emerald-500 shadow-sm flex justify-between items-center">
+                        <div>
+                            <div class="font-black text-slate-800 text-xs">🍵 手搖飲無糖純茶 $10 折價券</div>
+                            <div class="text-[10px] text-slate-500">50嵐 / 得正 / 迷客夏 門市通用</div>
+                        </div>
+                        <button onclick="redeemItem('手搖飲無糖純茶 $10 折價券', 100)" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-3 py-1.5 rounded-lg text-[11px] shadow">
+                            100 W 兌換
+                        </button>
+                    </div>
+
+                    <!-- 商品 2 -->
+                    <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex justify-between items-center">
+                        <div>
+                            <div class="font-bold text-slate-800 text-xs">🥗 超商舒肥雞胸肉 $15 折價券</div>
+                            <div class="text-[10px] text-slate-500">全家 / 7-11 增肌減脂輕食專區</div>
+                        </div>
+                        <button onclick="redeemItem('超商舒肥雞胸肉 $15 折價券', 150)" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-3 py-1.5 rounded-lg text-[11px]">
+                            150 W 兌換
+                        </button>
+                    </div>
+
+                    <!-- 商品 3 -->
+                    <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex justify-between items-center">
+                        <div>
+                            <div class="font-bold text-slate-800 text-xs">📺 凱擘大寬頻・居家體感互動包</div>
+                            <div class="text-[10px] text-slate-500">喬山 × 凱擘智慧家庭雙人派對課程</div>
+                        </div>
+                        <button onclick="redeemItem('凱擘大寬頻・居家體感互動包', 300)" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-3 py-1.5 rounded-lg text-[11px]">
+                            300 W 兌換
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 動態 POS 核銷條碼區 -->
+                <div id="barcode-card" class="bg-white p-3 rounded-2xl border-2 border-dashed border-slate-300 text-center space-y-1">
+                    <div id="barcode-title" class="text-[11px] font-black text-emerald-700">✓ 已生成手搖飲折抵條碼（門市 POS 直接刷）</div>
+                    <div class="font-mono text-base tracking-[0.25em] font-black bg-slate-100 py-2 rounded-lg text-slate-800 select-all">
+                        ||| |||| || ||||| |||
+                    </div>
+                    <div id="barcode-code" class="text-[10px] text-slate-400">核銷序號：WT-2026-88392｜單次動態防偽</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ================= 底部導覽列 (Bottom Navigation) ================= -->
+        <div class="bg-slate-900 text-white px-3 py-2 flex justify-around items-center text-[11px] z-20">
+            <button onclick="switchTab('home')" id="nav-home" class="flex flex-col items-center text-emerald-400 font-bold">
+                <span class="text-base">🏠</span>
+                <span>首頁</span>
+            </button>
+            <button onclick="switchTab('squad')" id="nav-squad" class="flex flex-col items-center text-slate-400 hover:text-white">
+                <span class="text-base">🤝</span>
+                <span>連坐小隊</span>
+            </button>
+            <button onclick="switchTab('ai')" class="bg-amber-400 text-slate-950 font-black px-3 py-1.5 rounded-full flex items-center gap-1 shadow-md transform -translate-y-1">
+                <span>📸</span>
+                <span>AI拍美食</span>
+            </button>
+            <button onclick="switchTab('mall')" id="nav-mall" class="flex flex-col items-center text-slate-400 hover:text-white">
+                <span class="text-base">🛍️</span>
+                <span>W幣商城</span>
+            </button>
+        </div>
+    </div>
+    <!-- ================= 手機外框結束 ================= -->
+
+    <script>
+        let coins = 450;
+        let timerInterval = null;
+        let secondsLeft = 15;
+        let boxOpened = false;
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 2800);
+        }
+
+        function updateCoins(delta) {
+            coins += delta;
+            document.getElementById('w-coins').innerText = coins;
+        }
+
+        function switchTab(tabName) {
+            ['home', 'player', 'squad', 'ai', 'mall'].forEach(t => {
+                document.getElementById('tab-' + t).classList.add('hidden');
+            });
+            document.getElementById('tab-' + tabName).classList.remove('hidden');
+
+            // 更新導覽列高亮
+            ['home', 'squad', 'mall'].forEach(n => {
+                const el = document.getElementById('nav-' + n);
+                if (el) el.className = (n === tabName) ? 'flex flex-col items-center text-emerald-400 font-bold' : 'flex flex-col items-center text-slate-400 hover:text-white';
+            });
+
+            if (tabName !== 'player' && timerInterval) {
+                clearInterval(timerInterval);
+            }
+        }
+
+        function pokeAvatar() {
+            const speeches = [
+                "「動一下只要 3 分鐘，不用換運動服喔！」",
+                "「再完成 1 次任務就能抽盲盒換手搖飲！」",
+                "「行銷部小隊還差宇軒還沒動，快去轟炸他～」"
+            ];
+            document.getElementById('avatar-speech').innerText = speeches[Math.floor(Math.random() * speeches.length)];
+        }
+
+        function startWorkout() {
+            switchTab('player');
+            document.getElementById('reward-modal').classList.add('hidden');
+            secondsLeft = 15;
+            document.getElementById('timer-display').innerText = "00:15";
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                secondsLeft--;
+                document.getElementById('timer-display').innerText = "00:" + (secondsLeft < 10 ? "0" + secondsLeft : secondsLeft);
+                if (secondsLeft <= 0) {
+                    clearInterval(timerInterval);
+                    finishWorkoutInstantly();
+                }
+            }, 1000);
+        }
+
+        function finishWorkoutInstantly() {
+            if (timerInterval) clearInterval(timerInterval);
+            document.getElementById('timer-display').innerText = "00:00";
+            document.getElementById('reward-modal').classList.remove('hidden');
+            document.getElementById('box-unopened').classList.remove('hidden');
+            document.getElementById('box-opened').classList.add('hidden');
+            boxOpened = false;
+        }
+
+        function openBlindBox() {
+            if (boxOpened) return;
+            boxOpened = true;
+            document.getElementById('box-unopened').classList.add('hidden');
+            document.getElementById('box-opened').classList.remove('hidden');
+
+            // 增加 W 幣與更新首頁狀態
+            updateCoins(30);
+            document.getElementById('user-title').innerText = "👑 辦公室生存大師";
+            document.getElementById('avatar-emoji').innerText = "🧘🏻‍♀️🎧";
+            document.getElementById('avatar-emoji').classList.remove('grayscale-[40%]');
+            document.getElementById('avatar-badge').innerText = "狀態：肩頸封印解除 ✨";
+            document.getElementById('avatar-badge').className = "bg-emerald-100 text-emerald-800 text-[10px] font-black px-2 py-0.5 rounded-full";
+            document.getElementById('vitality-bar').style.width = "100%";
+            document.getElementById('vitality-text').innerText = "100% (今日活力滿載！)";
+            document.getElementById('insurance-bar').style.width = "95%";
+            document.getElementById('insurance-badge').innerText = "已達標 95%";
+            showToast("🎉 開箱成功！獲得 +30 W幣 與【辦公室生存大師】稱號");
+        }
+
+        function goToShareCard() {
+            switchTab('squad');
+            showToast("✨ 已為您套用最新 Avatar 與稱號炫耀卡！");
+        }
+
+        function nudgeTeammate() {
+            showToast("💥 已向「宇軒」發送 3 張連坐危機迷因圖通知！");
+            const btn = document.getElementById('nudge-btn');
+            btn.innerText = "✓ 已傳送迷因轟炸 (等待宇軒回應...)";
+            btn.className = "flex-1 bg-slate-700 text-white font-bold py-2 rounded-xl text-xs";
+        }
+
+        function simulateTeammateDone() {
+            document.getElementById('teammate-box').className = "bg-emerald-50 p-2 rounded-xl border border-emerald-200";
+            document.getElementById('teammate-emoji').innerText = "😎";
+            document.getElementById('teammate-name').innerText = "宇軒 ✓";
+            document.getElementById('teammate-name').className = "font-black text-emerald-700 text-[11px] mt-1";
+            document.getElementById('squad-progress').innerText = "4/4";
+            document.getElementById('squad-status-badge').innerText = "🎉 全隊達標！";
+            document.getElementById('squad-status-badge').className = "bg-emerald-100 text-emerald-700 text-[10px] font-black px-2 py-0.5 rounded-full";
+            document.getElementById('squad-desc').innerHTML = "✅ 全隊今日皆完成 3 分鐘微任務，已發放 <b class='text-emerald-600'>+200 W幣小隊大禮包</b>！";
+            updateCoins(200);
+            showToast("🎊 宇軒剛完成了 3 分鐘伸展！全隊獲得 +200 W幣！");
+        }
+
+        function shareToSocial() {
+            updateCoins(5);
+            showToast("📸 已分享至 IG 限動與 Threads！獲得 +5 W幣獎勵！");
+        }
+
+        function analyzeFood() {
+            document.getElementById('food-result').classList.remove('hidden');
+            showToast("🤖 AI 辨識完成！已生成專屬 3 分鐘抵銷處方");
+        }
+
+        function redeemItem(name, cost) {
+            if (coins < cost) {
+                showToast("⚠️ W幣餘額不足喔！快去做 3 分鐘微運動賺取～");
+                return;
+            }
+            updateCoins(-cost);
+            document.getElementById('barcode-title').innerText = "✓ 已生成【" + name + "】核銷條碼";
+            document.getElementById('barcode-code').innerText = "核銷序號：WT-" + Math.floor(100000 + Math.random() * 900000) + "｜門市 POS 直接刷";
+            showToast("🛍️ 兌換成功！已扣除 " + cost + " W幣並更新下方條碼");
+        }
+
+        function resetDemo() {
+            location.reload();
+        }
+    </script>
+</body>
+</html>
